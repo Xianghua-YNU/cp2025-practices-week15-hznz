@@ -9,12 +9,12 @@ u''(x) = -π(u(x)+1)/4
 
 学生姓名：年世玺
 学号：20231050111
-完成日期：2025-6-9
+完成日期：2025-06-09
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import odeint, solve_ivp, solve_bvp
+from scipy.integrate import solve_ivp, solve_bvp
 from scipy.optimize import fsolve
 import warnings
 warnings.filterwarnings('ignore')
@@ -133,16 +133,19 @@ def solve_bvp_shooting_method(x_span, boundary_conditions, n_points=100, max_ite
     r1 = residual(m1)
     
     # Iterate until convergence or max iterations
-    for i in range(max_iterations):
-        if abs(r1) < tolerance:
+    iteration = 0
+    while iteration < max_iterations and abs(r1) > tolerance:
+        # Avoid division by zero
+        if abs(r1 - r0) < 1e-12:
             break
             
         # Secant method update
-        m_new = m1 - r1 * (m1 - m0) / (r1 - r0 + 1e-12)
+        m_new = m1 - r1 * (m1 - m0) / (r1 - r0)
         
         # Update for next iteration
         m0, m1 = m1, m_new
         r0, r1 = r1, residual(m1)
+        iteration += 1
     
     # Final solution with converged slope
     x = np.linspace(x0, x_end, n_points)
@@ -298,8 +301,8 @@ def test_ode_system():
         dydt_scipy = ode_system_scipy(t_test, y_test)
         print(f"ODE system (scipy): dydt = {dydt_scipy}")
         
-    except NotImplementedError:
-        print("ODE system functions not yet implemented.")
+    except Exception as e:
+        print(f"ODE system test failed: {str(e)}")
 
 
 def test_boundary_conditions():
@@ -314,8 +317,8 @@ def test_boundary_conditions():
         bc_residual = boundary_conditions_scipy(ya, yb)
         print(f"Boundary condition residuals: {bc_residual}")
         
-    except NotImplementedError:
-        print("Boundary conditions function not yet implemented.")
+    except Exception as e:
+        print(f"Boundary conditions test failed: {str(e)}")
 
 
 if __name__ == "__main__":
